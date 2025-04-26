@@ -1,15 +1,15 @@
+require('dotenv').config();
 const app = require('./app');
 const sequelize = require('./config/database');
-require('dotenv').config();
+const { User, Transaction, View } = require('./models');
 
 const PORT = process.env.PORT || 5000;
 
+// Função assíncrona para iniciar o servidor e conectar ao banco de dados
 async function start() {
   try {
     await sequelize.authenticate();
     console.log('Conexão estabelecida com o PostgreSQL.');
-
-    await sequelize.sync({ alter: true });
 
     app.listen(PORT, () => {
       console.log(`Servidor rodando na porta ${PORT}`);
