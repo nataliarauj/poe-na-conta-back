@@ -1,7 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
+require('dotenv').config();
+
+const secret = process.env.JWT_SECRET;
 // GET /users - Buscar todos os usuários
 router.get('/users', async (req, res) => {
   try {
@@ -32,16 +37,22 @@ router.get('/users/:id', async (req, res) => {
 // POST /users - Criar um novo usuário
 router.post('/users', async (req, res) => {
   try {
-    if (!req.body.name || !req.body.useremail || !req.body.passwordhash) {
+    const { name, useremail, passwordhash } = req.body;
+
+    if (!name || !useremail || !passwordhash) {
       return res.status(400).json({ 
         error: 'Nome, email e senha são obrigatórios' 
       });
     }
 
+    // Gerar o hash da senha
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(passwordhash, salt);
+
     const newUser = await User.create({
-      name: req.body.name,
-      useremail: req.body.useremail,
-      passwordhash: req.body.passwordhash
+      name,
+      useremail,
+      passwordhash: hashedPassword // salvando o hash no banco
     });
 
     res.status(201).json(newUser);
@@ -62,7 +73,11 @@ router.put('/users/:id', async (req, res) => {
 
     if (req.body.name) user.name = req.body.name;
     if (req.body.useremail) user.useremail = req.body.useremail;
-    if (req.body.passwordhash) user.passwordhash = req.body.passwordhash;
+
+    if (req.body.passwordhash) {
+      const salt = await bcrypt.genSalt(10);
+      user.passwordhash = await bcrypt.hash(req.body.passwordhash, salt);
+    }
 
     await user.save();
     
@@ -89,6 +104,45 @@ router.delete('/users/:id', async (req, res) => {
   } catch (error) {
     console.error('Erro ao remover usuário:', error);
     res.status(500).json({ error: 'Erro interno ao remover usuário' });
+  }
+});
+
+// POST /login - Login de usuário
+router.post('/login', async (req, res) => {
+  const { useremail, passwordhash } = req.body;
+
+  if (!useremail || !passwordhash) {
+    return res.status(400).json({ error: 'Email e senha são obrigatórios' });
+  }
+
+  try {
+    const user = await User.findOne({ where: { useremail } });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Usuário não encontrado' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(passwordhash, user.passwordhash);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Senha incorreta' });
+    }
+
+    // Criar o Token JWT
+    const token = jwt.sign(
+      { id: user.id, useremail: user.useremail },
+      secret,
+      { expiresIn: '2h' }
+    );
+
+    res.status(200).json({ 
+      message: 'Login realizado com sucesso', 
+      token 
+    });
+
+  } catch (error) {
+    console.error('Erro no login:', error);
+    res.status(500).json({ error: 'Erro interno no servidor' });
   }
 });
 
