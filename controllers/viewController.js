@@ -1,5 +1,4 @@
 const sequelize = require('../config/database');
-const View = require('../models/View');
 
 // Faz a consulta da view através da query e exporta
 exports.getBalanceSummary = async (req, res) => {
