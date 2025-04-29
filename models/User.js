@@ -25,6 +25,11 @@ const User = sequelize.define('User', {
       type: DataTypes.TEXT,
       allowNull: false,
       field: 'passwordhash'
+    },
+    premium: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      field: 'premium'
     }
   }, {
     tableName: 'clients',
