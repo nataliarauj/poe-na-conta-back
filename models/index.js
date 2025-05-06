@@ -1,6 +1,6 @@
 const User = require('./User');
 const Transaction = require('./Transaction');
-const View = require('./View');
+const ViewBalance = require('./ViewBalance');
 
 // Define o relacionamento: um usuário pode ter muitas transações
 User.hasMany(Transaction, { foreignKey: 'client_id' });
@@ -11,5 +11,5 @@ Transaction.belongsTo(User, { foreignKey: 'client_id' });
 module.exports = {
   User,
   Transaction,
-  View
+  ViewBalance
 };

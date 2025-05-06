@@ -1,17 +1,12 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-// Define o modelo 'View' que representa a view 'balancesummary' no bd
-const View = sequelize.define('View', {
+// Define o modelo 'ViewBalance' que representa a view 'balancesummary' no bd
+const ViewBalance = sequelize.define('ViewBalance', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     field: 'id'
-  },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    field: 'name'
   },
   debts: {
     type: DataTypes.FLOAT,
@@ -34,4 +29,4 @@ const View = sequelize.define('View', {
   freezeTableName: true
 });
 
-module.exports = View;
+module.exports = ViewBalance;
