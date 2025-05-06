@@ -1,7 +1,7 @@
 require('dotenv').config();
 const app = require('./app');
 const sequelize = require('./config/database');
-const { User, Transaction, ViewBalance } = require('./models');
+require('./job/periodicDeletion');
 const PORT = process.env.PORT || 5000;
 
 // Função assíncrona para iniciar o servidor e conectar ao banco de dados
