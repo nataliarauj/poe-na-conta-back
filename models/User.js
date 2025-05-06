@@ -28,8 +28,21 @@ const User = sequelize.define('User', {
     },
     premium: {
       type: DataTypes.BOOLEAN,
+      defaultValue: false,
       allowNull: false,
       field: 'premium'
+    },
+    createdAt: {
+      type: DataTypes.TIME,
+      allowNull: false,
+      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      field: 'createdAt'
+    },
+    emailVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'emailVerified'
     }
   }, {
     tableName: 'clients',
