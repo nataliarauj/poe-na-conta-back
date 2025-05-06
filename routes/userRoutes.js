@@ -77,7 +77,7 @@ router.post('/users', async (req, res) => {
       { expiresIn: '20m' }
     );
 
-    const verifyUrl = `http://localhost:5000/api/verify-email?token=${emailToken}`;
+    const verifyUrl = `${process.env.URL_VERIFICATION}?token=${emailToken}`;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
