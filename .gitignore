@@ -1,4 +1,8 @@
 .env
 \node_modules
-createView.js
 db.sql
+createViewCategory.js
+createViewCount.js
+createViewSummary.js
+models/ViewCategory.js
+models/ViewCount.js
