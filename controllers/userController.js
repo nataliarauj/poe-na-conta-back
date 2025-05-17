@@ -15,7 +15,7 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-exports.espUser = async (req, res) => {
+exports.searchUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id);
 
@@ -127,31 +127,6 @@ exports.email = async (req, res) => {
   }
 };
 
-exports.updUser = async (req, res) => {
-  try {
-    const user = await User.findByPk(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado' });
-    }
-
-    if (req.body.name) user.name = req.body.name;
-    if (req.body.useremail) user.useremail = req.body.useremail;
-
-    if (req.body.passwordhash) {
-      const salt = await bcrypt.genSalt(10);
-      user.passwordhash = await bcrypt.hash(req.body.passwordhash, salt);
-    }
-
-    await user.save();
-
-    res.status(200).json(user);
-  } catch (error) {
-    console.error('Erro ao atualizar usuário:', error);
-    res.status(500).json({ error: 'Erro interno ao atualizar usuário' });
-  }
-};
-
 exports.delete = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id);
@@ -211,3 +186,184 @@ exports.login = async (req, res) => {
     res.status(500).json({ error: 'Erro interno no servidor' });
   }
 }
+
+// Update
+exports.updUser = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    if (req.body.name) user.name = req.body.name;
+    if (req.body.useremail) user.useremail = req.body.useremail;
+
+    if (req.body.passwordhash) {
+      const salt = await bcrypt.genSalt(10);
+      user.passwordhash = await bcrypt.hash(req.body.passwordhash, salt);
+    }
+
+    await user.save();
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Erro ao atualizar usuário:', error);
+    res.status(500).json({ error: 'Erro interno ao atualizar usuário' });
+  }
+};
+
+exports.updateName = async (req, res) => {
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: 'Nome não fornecido.' });
+  }
+
+  try {
+    const user = await User.findByPk(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    user.name = name;
+    await user.save();
+
+    return res.status(200).json({ message: 'Nome atualizado com sucesso.' });
+
+  } catch (error) {
+    console.error('Erro ao atualizar nome:', error);
+    return res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+};
+
+exports.requestEmailUpdate = async (req, res) => {
+  const { newEmail } = req.body;
+
+  if (!newEmail) {
+    return res.status(400).json({ error: 'Novo e-mail não fornecido.' });
+  }
+
+  try {
+    const user = await User.findByPk(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+    const existingUser = await User.findOne({
+      where: { useremail: newEmail }
+    });
+
+    if (existingUser) {
+      return res.status(409).json({ error: 'Este e-mail já está em uso por outro usuário.' });
+    }
+
+    if (newEmail === user.useremail) {
+      return res.status(400).json({ error: 'O novo e-mail é igual ao e-mail atual.' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, newEmail },
+      process.env.JWT_EMAIL_SECRET,
+      { expiresIn: '20m' }
+    );
+    
+    const verifyUrl = `${process.env.URL_NEW_EMAIL}?token=${token}`;
+
+    const sanitizedName = user.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: newEmail,
+      subject: 'Confirmação de e-mail - Põe na Conta',
+      html: `
+        <h3>Olá, ${sanitizedName}!</h3>
+        <p>Você solicitou uma alteração de email na <strong>Põe na Conta</strong>.</p>
+        <p>Para ativar sua conta, por favor confirme seu e-mail clicando no botão abaixo:</p>
+        <p><a href="${verifyUrl}" style="background-color: #163465; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Confirmar e-mail</a></p>
+        <p><em>Este link é válido por 20 minutos.</em></p>
+        <hr>
+        <p style="font-size: 12px; color: gray;">Este é um e-mail automático, por favor não responda.</p>
+      `
+    });
+
+    return res.status(200).json({ message: 'E-mail de verificação enviado. Verifique sua caixa de entrada.' });
+
+  } catch (error) {
+    console.error('Erro ao solicitar atualização de e-mail:', error);
+    return res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+};
+
+exports.verifyEmail = async (req, res) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return res.status(400).json({ error: 'Token de verificação não fornecido.' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_EMAIL_SECRET);
+    const user = await User.findByPk(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    if (user.useremail === decoded.newEmail) {
+      return res.status(409).json({ message: 'Este e-mail já está verificado.' });
+    }
+
+    user.useremail = decoded.newEmail;
+
+    await user.save();
+
+    return res.status(200).json({ message: 'E-mail verificado e atualizado com sucesso!' });
+
+  } catch (error) {
+    console.error('Erro na verificação de e-mail:', error);
+
+    if (error.name === 'TokenExpiredError') {
+      return res.status(410).json({ error: 'Token expirado. Solicite novamente a alteração de e-mail.' });
+    }
+
+    return res.status(400).json({ error: 'Token inválido.' });
+  }
+};
+
+exports.updPass = async (req, res) => {
+  try {
+    if (!req.body) {
+      return res.status(400).json({ message: "Corpo da requisição ausente." });
+    }
+
+    const { oldPass, newPass } = req.body;
+    const user = await User.findByPk(req.user.id);
+    const passHash = await bcrypt.compare(oldPass, user.passwordhash);
+
+    if (!newPass || !oldPass) {
+      return res.status(400).json({message: "Os campos de senha devem ser preenchidos."});
+    } 
+
+    if (!passHash) {
+      return res.status(400).json({message: "A senha informada está incorreta."});
+    }
+
+    if (oldPass == newPass) {
+      return res.status(400).json({message: "A nova senha não pode ser igual a anterior."});
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPass = await bcrypt.hash(newPass, salt);
+
+    user.passwordhash = hashedPass;
+    await user.save();
+
+    return res.status(200).json({message: "Senha atualizada com sucesso!"});
+  } catch (error) {
+    console.error('Erro ao atualizar a senha:', error);
+    return res.status(500).json({ error: 'Erro interno do servidor.' });
+  } 
+
+};
