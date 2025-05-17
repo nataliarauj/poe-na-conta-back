@@ -13,17 +13,23 @@ router.get('/verify-email', userController.email);
 router.post('/login', userController.login);
 
 // Rotas protegidas
-
-// GET /users - Buscar todos os usuários
-router.get('/users', auth, userController.getUsers);
-
 // GET /users/:id - Buscar um usuário específico
-router.get('/users/me', auth, userController.espUser);
+router.get('/users/me', auth, userController.searchUser);
 
 // PUT /users/:id - Atualizar um usuário
-router.put('/users/me', auth, userController.updUser);
+//router.patch('/users/me', auth, userController.updUser);
 
 // DELETE /users/:id - Remover um usuário
 router.delete('/users/me', auth, userController.delete);
+
+router.patch('/users/update-name', auth, userController.updateName);
+
+router.patch('/users/update-password', auth, userController.updPass);
+
+router.patch('/users/update-email', auth, userController.requestEmailUpdate);
+
+router.get('/users/verify-email', userController.verifyEmail);
+
+
 
 module.exports = router;
