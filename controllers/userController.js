@@ -367,3 +367,66 @@ exports.updPass = async (req, res) => {
   } 
 
 };
+
+// Recuperação de senha
+exports.forgotPass = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ where: { useremail: email } });
+
+    if (!user) {
+      // Para não revelar se o e-mail existe ou não
+      return res.status(200).json({ message: 'Se o e-mail existir, enviaremos instruções.' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '10min' }
+    );
+
+      const resetLink = `${process.env.URL_RESET_PASS}?token=${token}`;
+
+
+    await transporter.sendMail({
+      to: user.useremail,
+      subject: 'Recuperação de senha',
+      html: `<p>Olá! Clique <a href="${resetLink}">aqui</a> para redefinir sua senha.</p>`
+    });
+
+    return res.status(200).json({ message: 'Se o e-mail existir, enviaremos instruções.' });
+  } catch (error) {
+    console.error('Erro ao enviar e-mail:', error);
+    return res.status(500).json({ message: 'Erro ao enviar e-mail de recuperação.' });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  const { newPass } = req.body;
+
+  if (!newPass) {
+    return res.status(400).json({ message: 'Nova senha é obrigatória.' });
+  }
+
+  try {
+    const user = await User.findByPk(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(newPass, salt);
+
+    user.passwordhash = hashed;
+    await user.save();
+
+    return res.status(200).json({ message: 'Senha redefinida com sucesso.' });
+
+  } catch (error) {
+    console.error('Erro ao redefinir senha:', error);
+    return res.status(500).json({ message: 'Erro interno ao redefinir senha.' });
+  }
+};
+
