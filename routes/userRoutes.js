@@ -30,6 +30,9 @@ router.patch('/users/update-email', auth, userController.requestEmailUpdate);
 
 router.get('/users/verify-email', userController.verifyEmail);
 
+router.post('/users/forgot-pass', userController.forgotPass);
+
+router.patch('/users/reset-pass', auth, userController.resetPassword);
 
 
 module.exports = router;
