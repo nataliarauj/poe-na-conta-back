@@ -5,16 +5,6 @@ const transporter = require('../config/transporter');
 require('dotenv').config();
 // const secret = process.env.JWT_SECRET;
 
-exports.getUsers = async (req, res) => {
-  try {
-    const users = await User.findAll();
-    res.status(200).json(users);
-  } catch (error) {
-    console.error('Erro ao buscar usuários:', error);
-    res.status(500).json({ error: 'Erro interno ao buscar usuários' });
-  }
-};
-
 exports.searchUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id);
@@ -188,31 +178,6 @@ exports.login = async (req, res) => {
 }
 
 // Update
-exports.updUser = async (req, res) => {
-  try {
-    const user = await User.findByPk(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado' });
-    }
-
-    if (req.body.name) user.name = req.body.name;
-    if (req.body.useremail) user.useremail = req.body.useremail;
-
-    if (req.body.passwordhash) {
-      const salt = await bcrypt.genSalt(10);
-      user.passwordhash = await bcrypt.hash(req.body.passwordhash, salt);
-    }
-
-    await user.save();
-
-    res.status(200).json(user);
-  } catch (error) {
-    console.error('Erro ao atualizar usuário:', error);
-    res.status(500).json({ error: 'Erro interno ao atualizar usuário' });
-  }
-};
-
 exports.updateName = async (req, res) => {
   const { name } = req.body;
 
