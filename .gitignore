@@ -1,6 +1,2 @@
 .env
 \node_modules
-db.sql
-createViewCategory.js
-createViewCount.js
-createViewSummary.js
