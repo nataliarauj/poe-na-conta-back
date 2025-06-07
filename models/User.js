@@ -32,17 +32,17 @@ const User = sequelize.define('User', {
     allowNull: false,
     field: 'premium'
   },
-  createdAt: {
+  createdat: {
     type: DataTypes.TIME,
     allowNull: false,
     defaultValue: sequelize.literal('CURRENT_TIMESTAMP'),
-    field: 'createdAt'
+    field: 'createdat'
   },
-  emailVerified: {
+  emailverified: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false,
-    field: 'emailVerified'
+    field: 'emailverified'
   }
 }, {
   tableName: 'clients',
