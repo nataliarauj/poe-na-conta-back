@@ -42,7 +42,7 @@ exports.createUser = async (req, res) => {
       name,
       useremail,
       passwordhash: hashedPassword,
-      emailVerified: false
+      emailverified: false
     });
 
     // Gera token com ID do usuário
@@ -97,11 +97,11 @@ exports.email = async (req, res) => {
       return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
 
-    if (user.emailVerified) {
+    if (user.emailverified) {
       return res.status(409).json({ message: 'E-mail já foi verificado anteriormente.' });
     }
 
-    user.emailVerified = true;
+    user.emailverified = true;
     await user.save();
 
     return res.status(200).json({ message: 'E-mail verificado com sucesso!' });
@@ -149,7 +149,7 @@ exports.login = async (req, res) => {
     }
 
     // Verifica se o email foi confirmado
-    if (!user.emailVerified) {
+    if (!user.emailverified) {
       return res.status(403).json({ error: 'E-mail não verificado. Verifique sua caixa de entrada.' });
     }
 
@@ -368,14 +368,20 @@ exports.forgotPass = async (req, res) => {
 };
 
 exports.resetPassword = async (req, res) => {
-  const { newPass } = req.body;
+  const {token} = req.query
+  const {newPass} = req.body;
 
+  if (!token) {
+    return res.status(400).json({ error: 'Token de verificação não fornecido.' });
+  }
+  
   if (!newPass) {
     return res.status(400).json({ message: 'Nova senha é obrigatória.' });
   }
 
-  try {
-    const user = await User.findByPk(req.user.id);
+ try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findByPk(decoded.id);
 
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado.' });
@@ -391,7 +397,7 @@ exports.resetPassword = async (req, res) => {
 
   } catch (error) {
     console.error('Erro ao redefinir senha:', error);
-    return res.status(500).json({ message: 'Erro interno ao redefinir senha.' });
+    return res.status(500).json({ message: 'Token inválido ou expirado.' });
   }
 };
 
