@@ -18,6 +18,9 @@ router.get('/verify-email', userController.email);
 // GET /users/verify-email - Verifica o email 
 router.get('/users/verify-email', userController.verifyEmail);
 
+// UPDATE /users/reset-pass - Ateração da senha
+router.patch('/users/reset-pass', userController.resetPassword);
+
 //****// Rotas protegidas //****//
 
 // GET /users/me - Retornar os dados do usuário
@@ -34,8 +37,5 @@ router.patch('/users/update-password', auth, userController.updPass);
 
 // UPDATE /users/update-email - Alteração do email
 router.patch('/users/update-email', auth, userController.requestEmailUpdate);
-
-// UPDATE /users/reset-pass - Ateração da senha
-router.patch('/users/reset-pass', auth, userController.resetPassword);
 
 module.exports = router;
