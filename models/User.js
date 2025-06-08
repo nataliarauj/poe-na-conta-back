@@ -1,6 +1,7 @@
 const DataTypes = require('sequelize');
 const sequelize = require('../config/database');
 const Transaction = require('./Transaction');
+const Category = require('./Category');
 
 // Define o modelo 'User' que representa a tabela 'clients' no bd
 const User = sequelize.define('User', {
@@ -51,5 +52,6 @@ const User = sequelize.define('User', {
 
 
 User.hasMany(Transaction, { foreignKey: 'client_id' });
+User.hasMany(Category, { foreignKey: 'client_id' });
 
 module.exports = User;
