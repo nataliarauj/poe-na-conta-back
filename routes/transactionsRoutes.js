@@ -7,9 +7,9 @@ const auth = require('../middleware/auth')
 router.post('/transactions/create', auth, transactionsController.create);
 
 // PUT /transactions/update - Atualização de transação
-router.put('/transactions/update/:id', auth, transactionsController.update);
+router.patch('/transactions/update', auth, transactionsController.update);
 
 // DELETE /transactions/delete - Deletar transação específica
-router.delete('/transactions/delete/:id', auth, transactionsController.delete);
+router.delete('/transactions/delete', auth, transactionsController.delete);
 
 module.exports = router;

@@ -1,3 +1,4 @@
+const { useImperativeHandle } = require('react');
 const { Transaction } = require('../models');
 
 //Criar
@@ -39,14 +40,9 @@ exports.create = async(req, res) => {
 
 //Atualizar
 exports.update = async (req, res) => {
-  const { id } = req.params;
-  const { category_id, balance, title, description, createdat } = req.body;
+  const { id, category_id, balance, title, description, createdat } = req.body;
 
   try {
-    if (!category_id || !balance || !title) {
-      return res.status(400).json({ message: 'Preencha todos os campos obrigatórios' });
-    }
-
     const client_id = req.user.id;
 
     const transaction = await Transaction.findOne({
@@ -57,12 +53,11 @@ exports.update = async (req, res) => {
       return res.status(404).json({ message: 'Transação não encontrada!' });
     }
 
-    const updateData = {
-      title,
-      category_id,
-      balance,
-    };
-
+    const updateData = {};
+    
+    if (title !== undefined) updateData.title = title;
+    if (category_id !== undefined) updateData.category_id = category_id;
+    if (balance !== undefined) updateData.balance = balance;
     if (description !== undefined) updateData.description = description;
     if (createdat !== undefined) updateData.createdat = createdat;
 
@@ -78,10 +73,10 @@ exports.update = async (req, res) => {
 
 //Deletar
 exports.delete = async (req, res) => {
-  const { id } = req.params;
-  const client_id = req.user.id;
-
   try {
+    const {id} = req.body;
+    const client_id = req.user.id;
+    
     const transaction = await Transaction.findOne({
       where: { id, client_id }
     });
