@@ -1,15 +1,21 @@
 const User = require('./User');
 const Transaction = require('./Transaction');
+const Category = require('./Category')
 const ViewBalance = require('./ViewBalance');
+const ViewCategory = require('./ViewCategory');
+const ViewDebtsNGains = require('./ViewDebtsNGains');
 
-// Define o relacionamento: um usuário pode ter muitas transações
-User.hasMany(Transaction, { foreignKey: 'client_id' });
+Category.belongsTo(User, { foreignKey: 'client_id' });
+// Category.hasMany(Transaction, { foreignKey: 'category_id' });
 
-// Define o relacionamento inverso: uma transação pertence a um único usuário
 Transaction.belongsTo(User, { foreignKey: 'client_id' });
+Transaction.belongsTo(Category, { foreignKey: 'category_id' });
 
 module.exports = {
   User,
   Transaction,
-  ViewBalance
+  Category,
+  ViewBalance,
+  ViewCategory,
+  ViewDebtsNGains
 };

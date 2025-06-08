@@ -6,30 +6,36 @@ const auth = require('../middleware/auth');
 // POST /users - Criar um novo usuário com verificação de e-mail
 router.post('/users', userController.createUser);
 
-// Verifica o email do usuário que foi criado
-router.get('/verify-email', userController.email);
-
 // POST /login - Login de usuário
 router.post('/login', userController.login);
 
-// Rotas protegidas
-// GET /users/:id - Buscar um usuário específico
-router.get('/users/me', auth, userController.searchUser);
+// POST /users/forgot-pass - Solicita alteração da senha
+router.post('/users/forgot-pass', userController.forgotPass);
 
-// PUT /users/:id - Atualizar um usuário
-//router.patch('/users/me', auth, userController.updUser);
+// GET /verify-email - Valida o email cadastrado
+router.get('/verify-email', userController.email);
 
-// DELETE /users/:id - Remover um usuário
-router.delete('/users/me', auth, userController.delete);
-
-router.patch('/users/update-name', auth, userController.updateName);
-
-router.patch('/users/update-password', auth, userController.updPass);
-
-router.patch('/users/update-email', auth, userController.requestEmailUpdate);
-
+// GET /users/verify-email - Verifica o email 
 router.get('/users/verify-email', userController.verifyEmail);
 
+// UPDATE /users/reset-pass - Ateração da senha
+router.patch('/users/reset-pass', userController.resetPassword);
 
+//****// Rotas protegidas //****//
+
+// GET /users/me - Retornar os dados do usuário
+router.get('/users/me', auth, userController.searchUser);
+
+// DELETE /users/me - Remover o usuário
+router.delete('/users/me', auth, userController.delete);
+
+// UPDATE /users/update-name - Atualiza nome do usuário
+router.patch('/users/update-name', auth, userController.updateName);
+
+// UPDATE /users/update-password - Atualiza senha do usuário
+router.patch('/users/update-password', auth, userController.updPass);
+
+// UPDATE /users/update-email - Alteração do email
+router.patch('/users/update-email', auth, userController.requestEmailUpdate);
 
 module.exports = router;

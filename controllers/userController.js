@@ -5,16 +5,6 @@ const transporter = require('../config/transporter');
 require('dotenv').config();
 // const secret = process.env.JWT_SECRET;
 
-exports.getUsers = async (req, res) => {
-  try {
-    const users = await User.findAll();
-    res.status(200).json(users);
-  } catch (error) {
-    console.error('Erro ao buscar usuários:', error);
-    res.status(500).json({ error: 'Erro interno ao buscar usuários' });
-  }
-};
-
 exports.searchUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id);
@@ -52,7 +42,7 @@ exports.createUser = async (req, res) => {
       name,
       useremail,
       passwordhash: hashedPassword,
-      emailVerified: false
+      emailverified: false
     });
 
     // Gera token com ID do usuário
@@ -107,11 +97,11 @@ exports.email = async (req, res) => {
       return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
 
-    if (user.emailVerified) {
+    if (user.emailverified) {
       return res.status(409).json({ message: 'E-mail já foi verificado anteriormente.' });
     }
 
-    user.emailVerified = true;
+    user.emailverified = true;
     await user.save();
 
     return res.status(200).json({ message: 'E-mail verificado com sucesso!' });
@@ -159,7 +149,7 @@ exports.login = async (req, res) => {
     }
 
     // Verifica se o email foi confirmado
-    if (!user.emailVerified) {
+    if (!user.emailverified) {
       return res.status(403).json({ error: 'E-mail não verificado. Verifique sua caixa de entrada.' });
     }
 
@@ -188,31 +178,6 @@ exports.login = async (req, res) => {
 }
 
 // Update
-exports.updUser = async (req, res) => {
-  try {
-    const user = await User.findByPk(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado' });
-    }
-
-    if (req.body.name) user.name = req.body.name;
-    if (req.body.useremail) user.useremail = req.body.useremail;
-
-    if (req.body.passwordhash) {
-      const salt = await bcrypt.genSalt(10);
-      user.passwordhash = await bcrypt.hash(req.body.passwordhash, salt);
-    }
-
-    await user.save();
-
-    res.status(200).json(user);
-  } catch (error) {
-    console.error('Erro ao atualizar usuário:', error);
-    res.status(500).json({ error: 'Erro interno ao atualizar usuário' });
-  }
-};
-
 exports.updateName = async (req, res) => {
   const { name } = req.body;
 
@@ -367,3 +332,72 @@ exports.updPass = async (req, res) => {
   } 
 
 };
+
+// Recuperação de senha
+exports.forgotPass = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ where: { useremail: email } });
+
+    if (!user) {
+      // Para não revelar se o e-mail existe ou não
+      return res.status(200).json({ message: 'Se o e-mail existir, enviaremos instruções.' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '10min' }
+    );
+
+      const resetLink = `${process.env.URL_RESET_PASS}?token=${token}`;
+
+
+    await transporter.sendMail({
+      to: user.useremail,
+      subject: 'Recuperação de senha',
+      html: `<p>Olá! Clique <a href="${resetLink}">aqui</a> para redefinir sua senha.</p>`
+    });
+
+    return res.status(200).json({ message: 'Se o e-mail existir, enviaremos instruções.' });
+  } catch (error) {
+    console.error('Erro ao enviar e-mail:', error);
+    return res.status(500).json({ message: 'Erro ao enviar e-mail de recuperação.' });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  const {token} = req.query
+  const {newPass} = req.body;
+
+  if (!token) {
+    return res.status(400).json({ error: 'Token de verificação não fornecido.' });
+  }
+  
+  if (!newPass) {
+    return res.status(400).json({ message: 'Nova senha é obrigatória.' });
+  }
+
+ try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findByPk(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(newPass, salt);
+
+    user.passwordhash = hashed;
+    await user.save();
+
+    return res.status(200).json({ message: 'Senha redefinida com sucesso.' });
+
+  } catch (error) {
+    console.error('Erro ao redefinir senha:', error);
+    return res.status(500).json({ message: 'Token inválido ou expirado.' });
+  }
+};
+

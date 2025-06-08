@@ -9,8 +9,8 @@ cron.schedule('*/5 * * * *', async () => {
     try {
         const deleted = await User.destroy({
             where: {
-                emailVerified: false,
-                createdAt: {
+                emailverified: false,
+                createdat: {
                     [Op.lt]: new Date(Date.now() - 21 * 60 * 1000) // 21 minutos atrás
                 }
             }
