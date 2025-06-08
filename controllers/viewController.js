@@ -2,7 +2,7 @@ const sequelize = require('../config/database');
 const ViewBalance = require('../models/ViewBalance')
 const ViewCategory = require('../models/ViewCategory')
 const viewDebtsNGains = require('../models/ViewDebtsNGains')
-// Faz a consulta da view através da query e exporta
+
 exports.getBalanceDebts = async (req, res) => {
   try {
     const viewbalance = await ViewBalance.findByPk(req.user.id);
@@ -53,7 +53,7 @@ exports.getBalanceCategories = async (req, res) => {
     
     const categories = await ViewCategory.findAll({
       attributes: ['category', 'balance'],
-      where: { id: req.user.id }
+      where: { client_id: req.user.id }
     });
 
     if(!categories){
