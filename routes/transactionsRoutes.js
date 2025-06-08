@@ -6,6 +6,9 @@ const auth = require('../middleware/auth')
 // POST /transactions/create - Criar uma nova transação
 router.post('/transactions/create', auth, transactionsController.create);
 
+// GET /transactions/list-all-transactions - Lista todas as transações
+router.get('/transactions/list-all-transactions', auth, transactionsController.listAll);
+
 // PUT /transactions/update - Atualização de transação
 router.patch('/transactions/update', auth, transactionsController.update);
 
