@@ -1,16 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const Transaction = require('../models/Transaction');
+const transactionsController = require('../controllers/transactionsController');
+const auth = require('../middleware/auth')
 
-// Rota para buscar todas as transações e retornar no formato json
-router.get('/transactions', async (req, res) => {
-  try {
-    const transactions = await Transaction.findAll();
-    res.status(200).json(transactions);
-  } catch (error) {
-    console.error('Erro ao buscar transações:', error);
-    res.status(500).json({ error: 'Erro interno ao buscar transações' });
-  }
-});
+// POST /transactions/create - Criar uma nova transação
+router.post('/transactions/create', auth, transactionsController.create);
+
+// PUT /transactions/update - Atualização de transação
+router.patch('/transactions/update', auth, transactionsController.update);
+
+// DELETE /transactions/delete - Deletar transação específica
+router.delete('/transactions/delete', auth, transactionsController.delete);
 
 module.exports = router;
