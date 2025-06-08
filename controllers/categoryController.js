@@ -30,4 +30,72 @@ exports.create = async(req, res) => {
     console.error('Erro ao criar categoria:', error);
     res.status(500).json({ error: 'Erro interno ao criar categoria.' });
   }
-}
+};
+// Listar todas
+exports.listAll = async (req, res) => {
+  try {
+    const client_id = req.user.id;
+
+    const categories = await Category.findAll({
+      where: { client_id }
+    });
+
+    res.status(200).json(categories);
+
+  } catch (error) {
+    console.error('Erro ao listar categorias:', error);
+    res.status(500).json({ error: 'Erro interno ao listar categorias.' });
+  }
+};
+
+//Atualizar
+exports.update = async (req, res) => {
+  const { id, name } = req.body;
+
+  try {
+    const client_id = req.user.id;
+
+    const category = await Category.findOne({
+      where: { id, client_id }
+    });
+
+    if (!category) {
+      return res.status(404).json({ message: 'Categoria não encontrada' });
+    }
+    const updateData = {};
+    
+    if (name !== undefined) updateData.name = name;
+
+    await category.update({ name });
+    res.status(200).json({ message: 'Categoria atualizada com sucesso' });
+
+  } catch (error) {
+    console.error('Erro ao atualizar categoria:', error);
+    res.status(500).json({ error: 'Erro interno ao atualizar categoria.' });
+  }
+};
+
+//Deletar
+exports.delete = async (req, res) => {
+  const { id } = req.body;
+
+  try {
+    const client_id = req.user.id;
+
+    const category = await Category.findOne({
+      where: { id, client_id }
+    });
+
+    if (!category) {
+      return res.status(404).json({ message: 'Categoria não encontrada' });
+    }
+
+    await category.destroy();
+
+    res.status(200).json({ message: 'Categoria deletada com sucesso' });
+
+  } catch (error) {
+    console.error('Erro ao deletar categoria:', error);
+    res.status(500).json({ error: 'Erro interno ao deletar categoria.' });
+  }
+};
