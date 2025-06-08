@@ -36,7 +36,23 @@ exports.create = async(req, res) => {
     console.error('Erro ao criar transação:', error);
     res.status(500).json({ error: 'Erro interno ao criar transação.' });
   }
-}
+};
+
+exports.listAll = async (req, res) => {
+  try {
+    const client_id = req.user.id;
+
+    const transactions = await Transaction.findAll({
+      where: { client_id }
+    });
+
+    res.status(200).json(transactions);
+
+  } catch (error) {
+    console.error('Erro ao listar as transações:', error);
+    res.status(500).json({ error: 'Erro interno ao listar transações.' });
+  }
+};
 
 //Atualizar
 exports.update = async (req, res) => {
