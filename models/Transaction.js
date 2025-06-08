@@ -14,14 +14,14 @@ const Transaction = sequelize.define('Transaction', {
     allowNull: false,
     field: 'client_id'
   },
-  category: {
-    type: DataTypes.STRING,
+  category_id: {
+    type: DataTypes.INTEGER,
     allowNull: false,
-    field: 'category'
+    field: 'category_id'
   },
   balance: {
     type: DataTypes.DECIMAL,
-    allowNull: true,
+    allowNull: false,
     field: 'balance'
   },
   title: {
@@ -31,7 +31,8 @@ const Transaction = sequelize.define('Transaction', {
   },
   description: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
+    defaultValue: ' ',
     field: 'description'
   },
   createdat: {
