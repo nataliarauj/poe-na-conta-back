@@ -3,13 +3,16 @@ const router = express.Router();
 const transactionsController = require('../controllers/transactionsController');
 const auth = require('../middleware/auth')
 
-// POST /transactions - Fazer uma nova transação
-router.post('/add-transaction', auth, transactionsController.create);
+// POST /transactions/create - Criar uma nova transação
+router.post('/transactions/create', auth, transactionsController.create);
 
-// PUT /transactions/:id - Atualização de transação
-// router.patch('/transactions/:id', transactionsController.update);
+// GET /transactions/list-all-transactions - Lista todas as transações
+router.get('/transactions/list-all-transactions', auth, transactionsController.listAll);
 
-// DELETE /transactions/:id - Deletar transação específica
-// router.delete('/transactions/:id', transactionsController.delete);
+// PUT /transactions/update - Atualização de transação
+router.patch('/transactions/update', auth, transactionsController.update);
+
+// DELETE /transactions/delete - Deletar transação específica
+router.delete('/transactions/delete', auth, transactionsController.delete);
 
 module.exports = router;
